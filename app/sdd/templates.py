@@ -1,50 +1,70 @@
-PACKAGE_TEMPLATE = """# Spec: {package_name}
+PACKAGE_TEMPLATE = """# SDD: {package_name}
 
-## Context
+## 1. Specification Metadata
 
-{context}
+{specification_metadata}
 
-## Objective
+## 2. Package Purpose
 
-Document the current SSIS package behavior and provide a structured baseline for implementation planning.
+{package_purpose}
 
-## Inputs
+## 3. Execution Contract
 
-{inputs}
+{execution_contract}
 
-## Outputs
+## 4. Technical Inventory
 
-{outputs}
-
-## Connections
+### 4.1 Connections
 
 {connections}
 
-## Parameters and Variables
+### 4.2 Parameters
 
-{parameters_and_variables}
+{parameters}
 
-## Control Flow
+### 4.3 Variables
+
+{variables}
+
+## 5. Data Contract
+
+### 5.1 Inputs
+
+{inputs}
+
+### 5.2 Outputs
+
+{outputs}
+
+### 5.3 Source To Target Mapping
+
+{source_to_target_mapping}
+
+## 6. Control Flow Specification
 
 {control_flow}
 
-## Data Flow
+## 7. Data Flow Specification
 
 {data_flow}
 
-## SQL Commands
+## 8. SQL Specification
 
 {sql_commands}
 
-## Business Rules
+## 9. Business Rules
 
 {business_rules}
 
-## Risks and Attention Points
+## 10. Operational Requirements
+
+{operational_requirements}
+
+## 11. Risks, Gaps, And Open Questions
 
 {risks}
 
-## Implementation Backlog
+## 12. Implementation Backlog
 
 {implementation_backlog}
 """

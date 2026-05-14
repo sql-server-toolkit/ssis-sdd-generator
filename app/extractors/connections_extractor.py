@@ -21,7 +21,7 @@ class ConnectionsExtractor:
         connections = []
 
         for element in root.xpath(".//*[local-name()='ConnectionManager']"):
-            properties = named_properties(element)
+            properties = self._mask_properties(named_properties(element))
             connection_string = (
                 property_text(element, "ConnectionString")
                 or properties.get("ConnectionString")
@@ -110,3 +110,16 @@ class ConnectionsExtractor:
             masked_parts.append(f"{key}={value}")
 
         return ";".join(masked_parts)
+
+    def _mask_properties(self, properties: dict[str, str]) -> dict[str, str]:
+        masked = {}
+
+        for key, value in properties.items():
+            if key.strip().lower() in SENSITIVE_KEYS:
+                masked[key] = "***"
+            elif key.strip().lower() == "connectionstring":
+                masked[key] = self._mask_connection_string(value) or ""
+            else:
+                masked[key] = value
+
+        return masked

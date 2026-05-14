@@ -82,15 +82,12 @@ Memoria viva das pendencias do projeto. Marque cada item conforme avancarmos e r
 - [x] Gerar nomes de arquivo estaveis e seguros para sistemas de arquivos.
 - [x] Criar indice geral do projeto quando houver multiplos pacotes.
 
-## 10. Assessment de migracao para Microsoft Fabric
+## 10. Limite de escopo para assessments externos
 
-- [x] Definir heuristicas de classificacao de complexidade: baixa, media e alta.
-- [x] Mapear tarefas SSIS para possiveis alvos Fabric: Data Factory Pipelines, Notebooks, Lakehouse, Warehouse e Dataflows Gen2.
-- [x] Detectar blockers: script tasks, COM/custom components, SQL dinamico complexo, dependencias locais e arquivos em shares.
-- [x] Gerar recomendacao por pacote.
-- [x] Gerar recomendacao por componente critico.
-- [x] Estimar esforco relativo de migracao.
-- [x] Produzir backlog de migracao baseado nos riscos encontrados.
+- [x] Remover recomendacoes especificas de Microsoft Fabric do SDD principal.
+- [x] Manter backlog neutro de implementacao no SDD.
+- [x] Documentar que assessments de plataforma devem ser feitos por aplicacao separada.
+- [x] Preservar dados tecnicos suficientes para uma aplicacao externa consumir o SDD futuramente.
 
 ## 11. Testes e fixtures
 
@@ -111,7 +108,7 @@ Memoria viva das pendencias do projeto. Marque cada item conforme avancarmos e r
 - [x] Documentar estrutura de saida.
 - [x] Adicionar exemplo de Markdown gerado.
 - [x] Registrar limitacoes conhecidas.
-- [x] Detalhar metodologia de assessment em `docs/migration-poc-methodology.md`.
+- [x] Detalhar metodologia de geracao de SDD em `docs/sdd-generation-methodology.md`.
 - [x] Expandir specs em `specs/` conforme o comportamento implementado.
 
 ## 13. Qualidade operacional
@@ -136,7 +133,7 @@ Use esta secao para registrar marcos importantes durante a codificacao.
 | 2026-05-14 | Extractors essenciais conectados | Conexoes, variaveis, SQL, control flow e data flow passam a alimentar `SSISPackage` com saidas normalizadas. |
 | 2026-05-14 | SDD Markdown enriquecido | Builder agora renderiza metadados, conexoes mascaradas, variaveis, parametros, control flow, data flow, SQL, regras inferidas, riscos e recomendacao inicial. |
 | 2026-05-14 | Validacao basica executada | Dependencias instaladas, `compileall app` passou, `--help` funcionou e entrada vazia retornou erro controlado. |
-| 2026-05-14 | Assessment Fabric implementado | Heuristicas de complexidade, targets Fabric, blockers, recomendacoes por componente, esforco e backlog foram centralizados em `FabricMigrationAssessment`. |
 | 2026-05-14 | Testes automatizados adicionados | Suite `unittest` cobre CLI, parsers DTSX/CONMGR/ISPAC, mascaramento de segredos e geracao Markdown; 7 testes passaram. |
 | 2026-05-14 | Documentacao e dependencias revisadas | README, metodologia e specs foram atualizados; dependencias nao usadas no escopo inicial foram removidas de `requirements.txt`. |
 | 2026-05-14 | Padrao de lint e formatacao definido | `pyproject.toml` configurado para Black e Ruff; comandos documentados no README. |
+| 2026-05-14 | Escopo reposicionado para SDD SSIS | Assessment Fabric removido do core; aplicacoes de assessment ficam como consumidoras externas do SDD gerado. |

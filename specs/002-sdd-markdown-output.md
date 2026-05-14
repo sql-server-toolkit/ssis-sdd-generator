@@ -15,7 +15,7 @@ Each `.dtsx` package produces one Markdown file.
 - SQL Commands
 - Business Rules
 - Risks and Attention Points
-- Migration Recommendation
+- Implementation Backlog
 
 ## Standards
 

@@ -1,13 +1,13 @@
 # ssis-sdd-generator
 
-A Python tool that reads SSIS project artifacts and generates Spec Driven Development (SDD) Markdown files to support Microsoft Fabric migration assessment, technical documentation, and architecture review.
+A Python tool that reads SSIS project artifacts and generates Spec Driven Development (SDD) Markdown files for technical documentation, implementation planning, and architecture review.
 
 ## Objectives
 
 - Analyze SSIS artifacts: `.dtsx`, `.conmgr`, and `.ispac`.
 - Extract technical metadata from packages, connections, variables, control flow, data flow, and SQL.
 - Generate SDD-oriented Markdown specifications.
-- Produce initial Microsoft Fabric migration recommendations and backlog items.
+- Produce project-level SDD documentation and implementation backlog items.
 
 ## Project Structure
 
@@ -66,8 +66,8 @@ For each package, the tool writes one Markdown file with:
 - Control Flow and Data Flow summaries.
 - SQL command blocks.
 - Business rules inferred from SQL references.
-- Risks and migration blockers.
-- Microsoft Fabric target recommendations and migration backlog.
+- Risks and attention points.
+- Implementation backlog for review and follow-up work.
 
 When multiple package specs are generated, `output/index.md` is created as a project index.
 
@@ -110,7 +110,7 @@ python -m ruff check app tests
 - SSIS XML variations are handled tolerantly, but more real-world package fixtures are needed.
 - `.ispac` contents are inspected but not yet expanded into a full `SSISProject` aggregation flow.
 - Business rule inference is currently heuristic and based mainly on SQL/object references.
-- Fabric recommendations are initial assessment hints, not final migration design.
+- Platform-specific assessments, such as Microsoft Fabric migration analysis, are intentionally out of scope for this application and should be handled by a separate consumer of the generated SDD.
 
 ## License
 

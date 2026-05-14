@@ -1,3 +1,3 @@
 # Vision
 
-The objective of this project is to support technical teams during Microsoft Fabric migration assessments using Spec Driven Development principles.
+The objective of this project is to transform SSIS projects into structured SDD documentation using Spec Driven Development principles.

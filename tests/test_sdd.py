@@ -20,7 +20,7 @@ class SddTests(TestCase):
         self.assertIn("## Connections", markdown)
         self.assertIn("Password=***", markdown)
         self.assertIn("## SQL Commands", markdown)
-        self.assertIn("Migration Backlog", markdown)
+        self.assertIn("Implementation Backlog", markdown)
 
     def test_markdown_writer_uses_safe_filename_and_index(self):
         with TemporaryDirectory() as temp_dir:

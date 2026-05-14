@@ -6,7 +6,7 @@ PACKAGE_TEMPLATE = """# Spec: {package_name}
 
 ## Objective
 
-Document the current SSIS package behavior and provide a structured baseline for migration assessment.
+Document the current SSIS package behavior and provide a structured baseline for implementation planning.
 
 ## Inputs
 
@@ -44,7 +44,7 @@ Document the current SSIS package behavior and provide a structured baseline for
 
 {risks}
 
-## Migration Recommendation
+## Implementation Backlog
 
-{migration_recommendation}
+{implementation_backlog}
 """

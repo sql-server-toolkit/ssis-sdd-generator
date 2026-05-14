@@ -1,11 +1,9 @@
-from app.assessment import FabricMigrationAssessment
 from app.sdd.templates import PACKAGE_TEMPLATE
 
 
 class SpecBuilder:
 
     def build_package_spec(self, package_data: dict) -> str:
-        assessment = FabricMigrationAssessment().assess(package_data)
         return PACKAGE_TEMPLATE.format(
             package_name=package_data["package_name"],
             context=self._context(package_data),
@@ -17,8 +15,8 @@ class SpecBuilder:
             data_flow=self._data_flow(package_data),
             sql_commands=self._sql_commands(package_data),
             business_rules=self._business_rules(package_data),
-            risks=self._risks(package_data, assessment),
-            migration_recommendation=self._migration_recommendation(assessment),
+            risks=self._risks(package_data),
+            implementation_backlog=self._implementation_backlog(package_data),
         )
 
     def _context(self, package_data: dict) -> str:
@@ -197,56 +195,51 @@ class SpecBuilder:
 
         return "\n".join(rules) if rules else "_No business rules inferred yet._"
 
-    def _risks(self, package_data: dict, assessment: dict) -> str:
+    def _risks(self, package_data: dict) -> str:
         risks = []
 
         for command in package_data.get("sql_commands", []):
             if command.get("is_dynamic"):
-                risks.append(f"- Dynamic SQL detected in `{command.get('source')}`.")
+                risks.append(f"- Dynamic SQL requires implementation review: `{command.get('source')}`.")
 
         for task in package_data.get("tasks", []):
             task_type = (task.get("task_type") or "").lower()
             if "script" in task_type:
-                risks.append(f"- Script task may require manual migration: `{task.get('name')}`.")
+                risks.append(f"- Script task requires manual documentation review: `{task.get('name')}`.")
 
         for flow in package_data.get("data_flows", []):
             for component in flow.get("components", []):
                 component_class = (component.get("component_class_id") or "").lower()
                 if "script" in component_class or "custom" in component_class:
                     risks.append(
-                        f"- Custom or script data flow component detected: `{component.get('name')}`."
+                        f"- Custom or script data flow component requires manual documentation review: `{component.get('name')}`."
                     )
-
-        for blocker in assessment.get("blockers", []):
-            risks.append(f"- Migration blocker: {blocker}.")
 
         return "\n".join(risks) if risks else "_No immediate risks detected from current metadata._"
 
-    def _migration_recommendation(self, assessment: dict) -> str:
-        target_patterns = ", ".join(assessment.get("target_patterns", [])) or "Manual review"
-        component_rows = [
-            [
-                recommendation.get("component"),
-                recommendation.get("source_type"),
-                recommendation.get("target"),
-            ]
-            for recommendation in assessment.get("component_recommendations", [])
+    def _implementation_backlog(self, package_data: dict) -> str:
+        backlog = [
+            "Review generated SDD with the package owner.",
+            "Confirm source and target datasets for each connection.",
+            "Validate inferred business rules against functional knowledge.",
         ]
-        backlog = "\n".join(f"- {item}" for item in assessment.get("backlog", []))
 
-        return (
-            self._definition_table(
-                [
-                    ("Complexity", assessment.get("complexity")),
-                    ("Target patterns", target_patterns),
-                    ("Effort", assessment.get("effort")),
-                ]
-            )
-            + "\n\n### Component Recommendations\n\n"
-            + self._table(["Component", "SSIS type", "Fabric target"], component_rows)
-            + "\n\n### Migration Backlog\n\n"
-            + (backlog or "_No backlog items generated._")
-        )
+        if package_data.get("sql_commands"):
+            backlog.append("Review extracted SQL commands and classify implementation impact.")
+        if package_data.get("data_flows"):
+            backlog.append("Review data flow components, mappings, and transformation rules.")
+        if package_data.get("variables") or package_data.get("parameters"):
+            backlog.append("Confirm parameter and variable defaults required for execution.")
+
+        for command in package_data.get("sql_commands", []):
+            if command.get("is_dynamic"):
+                backlog.append(f"Document dynamic SQL resolution for `{command.get('source')}`.")
+
+        for task in package_data.get("tasks", []):
+            if task.get("properties", {}).get("is_unknown"):
+                backlog.append(f"Classify unknown SSIS task `{task.get('name')}`.")
+
+        return "\n".join(f"- {item}" for item in backlog)
 
     def _looks_like_input(self, connection: dict) -> bool:
         connection_type = (connection.get("connection_type") or "").lower()

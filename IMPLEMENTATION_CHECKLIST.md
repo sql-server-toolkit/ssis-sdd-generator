@@ -120,6 +120,53 @@ Memoria viva das pendencias do projeto. Marque cada item conforme avancarmos e r
 - [x] Adicionar `.gitignore` para ambientes virtuais, caches e saidas geradas.
 - [x] Garantir que `input/.gitkeep` e `output/.gitkeep` sejam preservados.
 
+## 14. Evolucao para SDD enriquecido por IA
+
+### Fase 1: JSON canonico deterministico
+
+- [x] Definir schema canonico `project.json` para representar o projeto SSIS processado.
+- [x] Incluir no JSON metadados do projeto, pacotes, conexoes, parametros, variaveis, control flow, data flow, SQL, riscos e gaps.
+- [x] Gerar `project.json` dentro da pasta de saida da execucao.
+- [x] Gerar um JSON por pacote, quando util, para facilitar analise incremental.
+- [x] Garantir que o Markdown continue sendo gerado a partir dos dados deterministico-extraidos.
+- [x] Adicionar testes para validar estrutura minima do JSON.
+- [x] Documentar o contrato do `project.json`.
+
+### Fase 2: Enriquecimento por IA com Structured Outputs
+
+- [ ] Adicionar dependencia/configuracao opcional para OpenAI API sem tornar IA obrigatoria.
+- [ ] Definir schema de saida da IA para campos como `package_purpose`, `execution_summary`, `business_rules`, `reconstruction_notes`, `open_questions` e `implementation_backlog`.
+- [ ] Criar modulo de enriquecimento que consome o JSON canonico e retorna JSON estruturado validado.
+- [ ] Usar `gpt-5.4` como modelo padrao configuravel.
+- [ ] Permitir configurar modelo via `.env` ou parametro CLI.
+- [ ] Adicionar parametro CLI para habilitar IA explicitamente, por exemplo `--enhance-with-ai`.
+- [ ] Garantir fallback deterministico quando IA estiver desabilitada ou falhar.
+- [ ] Registrar no Markdown quais secoes foram geradas por IA.
+
+### Fase 3: Revisao opcional de qualidade
+
+- [ ] Adicionar etapa opcional de revisao final usando modelo mais forte, como `gpt-5.5`.
+- [ ] Criar prompt de revisao para verificar clareza, completude, lacunas e capacidade de reconstrucao.
+- [ ] Gerar secao `Reconstruction Notes` no SDD.
+- [ ] Gerar secao `Open Questions For Package Owner` no SDD.
+- [ ] Permitir executar revisao apenas quando solicitada por parametro CLI.
+
+### Fase 4: Validacao anti-alucinacao
+
+- [ ] Validar que a IA nao cita conexoes, tasks, variaveis, parametros, componentes ou SQL inexistentes no JSON canonico.
+- [ ] Marcar afirmacoes inferidas como inferidas, nao como fatos extraidos.
+- [ ] Adicionar testes com saidas simuladas da IA.
+- [ ] Falhar ou alertar quando a resposta da IA violar o schema esperado.
+- [ ] Registrar divergencias no SDD em uma secao de `AI Validation Notes`.
+
+### Fase 5: Preparacao para reproducibilidade de projeto SSIS
+
+- [ ] Identificar lacunas que impedem reconstruir um pacote SSIS equivalente.
+- [ ] Expandir parser para event handlers, expressions, package configurations, logging e propriedades avancadas.
+- [ ] Expandir Data Flow para mapeamento detalhado de colunas, external metadata columns e error outputs.
+- [ ] Gerar uma secao `Rebuild Checklist` por pacote.
+- [ ] Avaliar uma saida futura em formato de especificacao executavel ou scaffold de projeto.
+
 ## Registro de avancos
 
 Use esta secao para registrar marcos importantes durante a codificacao.
@@ -137,3 +184,10 @@ Use esta secao para registrar marcos importantes durante a codificacao.
 | 2026-05-14 | Documentacao e dependencias revisadas | README, metodologia e specs foram atualizados; dependencias nao usadas no escopo inicial foram removidas de `requirements.txt`. |
 | 2026-05-14 | Padrao de lint e formatacao definido | `pyproject.toml` configurado para Black e Ruff; comandos documentados no README. |
 | 2026-05-14 | Escopo reposicionado para SDD SSIS | Assessment Fabric removido do core; aplicacoes de assessment ficam como consumidoras externas do SDD gerado. |
+| 2026-05-14 | Plano de testes registrado | `TEST_PLAN.md` criado com estrategia de testes para parsers, extractors, SDD, CLI, seguranca e fixtures futuras. |
+| 2026-05-14 | Entrada SSIS por parametro adicionada | CLI passou a aceitar `--ssis-folder` para apontar diretamente para a pasta real do projeto SSIS, mantendo `--project-folder` como alias legado. |
+| 2026-05-14 | Saida por execucao organizada | Arquivos gerados agora ficam em subpasta `NOME_PROJETO_yyyyMMdd_HHmmss` dentro do diretorio de saida. |
+| 2026-05-14 | Estrutura SDD para SSIS revisada | Template reorganizado para contrato de execucao, inventario tecnico, contrato de dados, especificacoes de fluxo, requisitos operacionais, riscos e backlog. |
+| 2026-05-14 | Nome real do projeto SSIS na pasta de saida | Nome da pasta de execucao agora prioriza `.dtproj`, depois `.sln`, depois `.ispac`, antes de usar o nome da pasta informada. |
+| 2026-05-14 | Roadmap de IA registrado | Pendencias organizadas em fases: JSON canonico, enriquecimento com Structured Outputs, revisao, validacao anti-alucinacao e reproducibilidade SSIS. |
+| 2026-05-14 | Fase 1 concluida | `project.json` e `packages/*.json` canonicos adicionados como saida deterministica para consumo futuro por IA ou ferramentas externas. |

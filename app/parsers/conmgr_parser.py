@@ -14,7 +14,7 @@ class ConnectionManagerParser:
         tree = etree.parse(str(file_path), parser)
         root = tree.getroot()
         extractor = ConnectionsExtractor()
-        properties = named_properties(root)
+        properties = extractor._mask_properties(named_properties(root))
         connection_string = property_text(root, "ConnectionString")
         parsed_connection = extractor._parse_connection_string(connection_string)
 

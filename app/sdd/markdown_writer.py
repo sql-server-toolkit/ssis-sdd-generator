@@ -1,6 +1,6 @@
 from pathlib import Path
-import re
 
+from app.sdd.paths import safe_path_name
 from app.sdd.spec_builder import SpecBuilder
 
 
@@ -15,7 +15,7 @@ class MarkdownWriter:
 
         markdown_content = builder.build_package_spec(package_data)
 
-        output_file = self.output_folder / f"{self._safe_filename(package_data['package_name'])}.md"
+        output_file = self.output_folder / f"{safe_path_name(package_data['package_name'], 'package')}.md"
 
         output_file.write_text(markdown_content, encoding="utf-8")
 
@@ -33,7 +33,3 @@ class MarkdownWriter:
         output_file.write_text("\n".join(rows) + "\n", encoding="utf-8")
 
         return output_file
-
-    def _safe_filename(self, value: str) -> str:
-        filename = re.sub(r"[^A-Za-z0-9._-]+", "_", value).strip("._")
-        return filename or "package"

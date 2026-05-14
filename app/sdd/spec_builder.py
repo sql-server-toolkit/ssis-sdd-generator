@@ -6,29 +6,76 @@ class SpecBuilder:
     def build_package_spec(self, package_data: dict) -> str:
         return PACKAGE_TEMPLATE.format(
             package_name=package_data["package_name"],
-            context=self._context(package_data),
+            specification_metadata=self._specification_metadata(package_data),
+            package_purpose=self._package_purpose(package_data),
+            execution_contract=self._execution_contract(package_data),
             inputs=self._inputs(package_data),
             outputs=self._outputs(package_data),
+            source_to_target_mapping=self._source_to_target_mapping(package_data),
             connections=self._connections(package_data),
-            parameters_and_variables=self._parameters_and_variables(package_data),
+            parameters=self._parameters(package_data),
+            variables=self._variables(package_data),
             control_flow=self._control_flow(package_data),
             data_flow=self._data_flow(package_data),
             sql_commands=self._sql_commands(package_data),
             business_rules=self._business_rules(package_data),
+            operational_requirements=self._operational_requirements(package_data),
             risks=self._risks(package_data),
             implementation_backlog=self._implementation_backlog(package_data),
         )
 
-    def _context(self, package_data: dict) -> str:
+    def _specification_metadata(self, package_data: dict) -> str:
         rows = [
+            ("Spec type", "SQL Server Integration Services package SDD"),
             ("Package name", package_data.get("package_name")),
             ("File path", package_data.get("file_path")),
             ("Package ID", package_data.get("package_id")),
             ("Version", package_data.get("version")),
             ("Creator", package_data.get("creator")),
             ("Creation date", package_data.get("creation_date")),
+            ("Generated status", "Draft generated from SSIS metadata"),
         ]
         return self._definition_table(rows)
+
+    def _package_purpose(self, package_data: dict) -> str:
+        package_name = package_data.get("package_name")
+        task_count = len(package_data.get("tasks", []))
+        data_flow_count = len(package_data.get("data_flows", []))
+        sql_count = len(package_data.get("sql_commands", []))
+
+        return (
+            f"This specification documents the SSIS package `{package_name}` as extracted from "
+            "the source project. The functional purpose must be confirmed with the package owner.\n\n"
+            f"Detected scope: {task_count} control flow task(s), {data_flow_count} data flow(s), "
+            f"{sql_count} SQL command(s)."
+        )
+
+    def _execution_contract(self, package_data: dict) -> str:
+        parameter_rows = [
+            [
+                parameter.get("name"),
+                parameter.get("data_type") or "-",
+                self._safe_value(parameter.get("value")),
+                parameter.get("required") or "-",
+                parameter.get("sensitive") or "-",
+            ]
+            for parameter in package_data.get("parameters", [])
+        ]
+        required_connections = [
+            [connection.get("name"), connection.get("connection_type") or "-", self._connection_location(connection)]
+            for connection in package_data.get("connections", [])
+        ]
+
+        return (
+            "### Runtime Parameters\n\n"
+            + self._table(["Name", "Type", "Default", "Required", "Sensitive"], parameter_rows)
+            + "\n\n### Required Connections\n\n"
+            + self._table(["Name", "Type", "Location"], required_connections)
+            + "\n\n### Preconditions\n\n"
+            + self._preconditions(package_data)
+            + "\n\n### Postconditions\n\n"
+            + self._postconditions(package_data)
+        )
 
     def _inputs(self, package_data: dict) -> str:
         inputs = []
@@ -38,7 +85,7 @@ class SpecBuilder:
                     [
                         connection.get("name"),
                         connection.get("connection_type"),
-                        connection.get("server") or connection.get("file_path") or "-",
+                        self._connection_location(connection),
                     ]
                 )
 
@@ -59,6 +106,33 @@ class SpecBuilder:
                     )
 
         return self._table(["Source", "Object", "Property"], outputs)
+
+    def _source_to_target_mapping(self, package_data: dict) -> str:
+        rows = []
+        for flow in package_data.get("data_flows", []):
+            sources = []
+            destinations = []
+            transformations = []
+            for component in flow.get("components", []):
+                component_name = component.get("name")
+                component_type = component.get("component_type")
+                if component_type == "Source":
+                    sources.append(component_name)
+                elif component_type == "Destination":
+                    destinations.append(component_name)
+                else:
+                    transformations.append(component_name)
+
+            rows.append(
+                [
+                    flow.get("name"),
+                    ", ".join(sources) or "-",
+                    ", ".join(transformations) or "-",
+                    ", ".join(destinations) or "-",
+                ]
+            )
+
+        return self._table(["Data flow", "Sources", "Transformations", "Destinations"], rows)
 
     def _connections(self, package_data: dict) -> str:
         rows = []
@@ -88,7 +162,7 @@ class SpecBuilder:
 
         return table if not details else f"{table}\n\n### Connection Strings\n\n" + "\n".join(details)
 
-    def _parameters_and_variables(self, package_data: dict) -> str:
+    def _parameters(self, package_data: dict) -> str:
         parameter_rows = [
             [
                 parameter.get("name"),
@@ -99,6 +173,10 @@ class SpecBuilder:
             ]
             for parameter in package_data.get("parameters", [])
         ]
+
+        return self._table(["Name", "Type", "Default", "Required", "Sensitive"], parameter_rows)
+
+    def _variables(self, package_data: dict) -> str:
         variable_rows = [
             [
                 variable.get("name"),
@@ -111,12 +189,7 @@ class SpecBuilder:
             for variable in package_data.get("variables", [])
         ]
 
-        return (
-            "### Parameters\n\n"
-            + self._table(["Name", "Type", "Default", "Required", "Sensitive"], parameter_rows)
-            + "\n\n### Variables\n\n"
-            + self._table(["Name", "Namespace", "Type", "Value", "Scope", "Expression"], variable_rows)
-        )
+        return self._table(["Name", "Namespace", "Type", "Value", "Scope", "Expression"], variable_rows)
 
     def _control_flow(self, package_data: dict) -> str:
         rows = []
@@ -195,6 +268,21 @@ class SpecBuilder:
 
         return "\n".join(rules) if rules else "_No business rules inferred yet._"
 
+    def _operational_requirements(self, package_data: dict) -> str:
+        requirements = [
+            "- The package must run with access to all listed connection managers.",
+            "- The execution environment must provide all required parameters and variables.",
+            "- Generated file paths, local folders, and shared folders must exist before execution.",
+            "- Package logging and failure handling must be reviewed against operational standards.",
+        ]
+
+        if package_data.get("sql_commands"):
+            requirements.append("- Database permissions must allow all extracted SQL operations.")
+        if package_data.get("data_flows"):
+            requirements.append("- Source and destination schemas must be validated before execution.")
+
+        return "\n".join(requirements)
+
     def _risks(self, package_data: dict) -> str:
         risks = []
 
@@ -222,6 +310,7 @@ class SpecBuilder:
             "Review generated SDD with the package owner.",
             "Confirm source and target datasets for each connection.",
             "Validate inferred business rules against functional knowledge.",
+            "Define the functional objective of the package in business terms.",
         ]
 
         if package_data.get("sql_commands"):
@@ -240,6 +329,34 @@ class SpecBuilder:
                 backlog.append(f"Classify unknown SSIS task `{task.get('name')}`.")
 
         return "\n".join(f"- {item}" for item in backlog)
+
+    def _preconditions(self, package_data: dict) -> str:
+        items = []
+        if package_data.get("connections"):
+            items.append("- All configured connection managers are reachable.")
+        if package_data.get("parameters"):
+            items.append("- Required package parameters are supplied by the caller or environment.")
+        if package_data.get("variables"):
+            items.append("- Runtime variables are initialized with expected defaults.")
+
+        return "\n".join(items) if items else "_No preconditions inferred from metadata._"
+
+    def _postconditions(self, package_data: dict) -> str:
+        items = []
+        if package_data.get("data_flows"):
+            items.append("- Data flow destinations are populated according to configured mappings.")
+        if package_data.get("sql_commands"):
+            items.append("- SQL commands complete successfully without unhandled errors.")
+
+        return "\n".join(items) if items else "_No postconditions inferred from metadata._"
+
+    def _connection_location(self, connection: dict) -> str:
+        return (
+            connection.get("server")
+            or connection.get("database")
+            or connection.get("file_path")
+            or "-"
+        )
 
     def _looks_like_input(self, connection: dict) -> bool:
         connection_type = (connection.get("connection_type") or "").lower()

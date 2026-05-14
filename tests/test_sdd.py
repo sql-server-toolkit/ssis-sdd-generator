@@ -16,10 +16,12 @@ class SddTests(TestCase):
         package = DtsxParser().parse(FIXTURES / "sample.dtsx")
         markdown = SpecBuilder().build_package_spec(package)
 
-        self.assertIn("# Spec: SamplePackage", markdown)
-        self.assertIn("## Connections", markdown)
+        self.assertIn("# SDD: SamplePackage", markdown)
+        self.assertIn("## 1. Specification Metadata", markdown)
+        self.assertIn("## 3. Execution Contract", markdown)
+        self.assertIn("### 4.1 Connections", markdown)
         self.assertIn("Password=***", markdown)
-        self.assertIn("## SQL Commands", markdown)
+        self.assertIn("## 8. SQL Specification", markdown)
         self.assertIn("Implementation Backlog", markdown)
 
     def test_markdown_writer_uses_safe_filename_and_index(self):

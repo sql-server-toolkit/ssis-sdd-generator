@@ -9,5 +9,5 @@ venv/
 
 .env
 
-output/*.md
+output/**
 !output/.gitkeep

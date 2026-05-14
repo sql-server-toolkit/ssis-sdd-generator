@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<DTS:ConnectionManager
+    xmlns:DTS="www.microsoft.com/SqlServer/Dts"
+    DTS:ObjectName="SharedDb"
+    DTS:CreationName="ADO.NET">
+  <DTS:Property DTS:Name="ConnectionString">Server=server02;Database=Shared;Pwd=secret;</DTS:Property>
+</DTS:ConnectionManager>

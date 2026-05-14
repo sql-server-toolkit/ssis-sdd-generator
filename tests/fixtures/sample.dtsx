@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<DTS:Executable
+    xmlns:DTS="www.microsoft.com/SqlServer/Dts"
+    DTS:ExecutableType="SSIS.Package.2">
+  <DTS:Property DTS:Name="ObjectName">SamplePackage</DTS:Property>
+  <DTS:Property DTS:Name="PackageID">{11111111-1111-1111-1111-111111111111}</DTS:Property>
+  <DTS:Property DTS:Name="CreatorName">Codex</DTS:Property>
+  <DTS:ConnectionManager DTS:ObjectName="SourceDb" DTS:CreationName="OLEDB">
+    <DTS:Property DTS:Name="ConnectionString">Data Source=server01;Initial Catalog=Sales;Password=secret;</DTS:Property>
+  </DTS:ConnectionManager>
+  <DTS:Variable DTS:ObjectName="User::BatchId" DTS:Namespace="User" DTS:DataType="Int32">
+    <DTS:VariableValue>42</DTS:VariableValue>
+  </DTS:Variable>
+  <DTS:Executable DTS:ObjectName="Load Sales" DTS:ExecutableType="Microsoft.ExecuteSQLTask">
+    <DTS:Property DTS:Name="SqlStatementSource">INSERT INTO dbo.FactSales SELECT * FROM dbo.StageSales WHERE BatchId = @[User::BatchId]</DTS:Property>
+  </DTS:Executable>
+  <DTS:Executable DTS:ObjectName="Sales Flow" DTS:ExecutableType="SSIS.Pipeline.2">
+    <pipeline>
+      <component name="Sales Source" componentClassID="OLEDBSource">
+        <connections>
+          <connection name="SourceDb" connectionManagerID="SourceDb" />
+        </connections>
+        <outputs>
+          <outputColumn name="SalesAmount" dataType="numeric" lineageId="1" />
+        </outputs>
+      </component>
+      <component name="Sales Destination" componentClassID="OLEDBDestination" />
+    </pipeline>
+  </DTS:Executable>
+</DTS:Executable>
